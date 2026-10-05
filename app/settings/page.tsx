@@ -15,7 +15,7 @@ import {
   pushSupported,
   sendTestPush,
 } from '@/lib/push'
-import { getThemePref, setThemePref, type ThemePref } from '@/lib/theme'
+import { getPalette, getThemePref, PALETTES, setPalette, setThemePref, type Palette as PaletteName, type ThemePref } from '@/lib/theme'
 
 const THEMES: { value: ThemePref; label: string; icon: Icon }[] = [
   { value: 'system', label: 'Hệ thống', icon: CircleHalf },
@@ -30,7 +30,8 @@ export default function SettingsPage() {
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
-  const [theme, setTheme] = useState<ThemePref>('system')
+  const [theme, setTheme] = useState<ThemePref>(getThemePref)
+  const [palette, setPaletteState] = useState<PaletteName>(getPalette)
 
   async function refresh() {
     if (!pushConfigured()) return setPush('unconfigured')
@@ -41,7 +42,6 @@ export default function SettingsPage() {
 
   useEffect(() => {
     refresh()
-    setTheme(getThemePref())
   }, [])
 
   async function run(fn: () => Promise<string | void>) {
@@ -138,6 +138,28 @@ export default function SettingsPage() {
               }}
             >
               <ThemeIcon size={16} /> {label}
+            </button>
+          ))}
+        </div>
+        <div className="palettes" role="radiogroup" aria-label="Bảng màu">
+          {(Object.keys(PALETTES) as PaletteName[]).map((key) => (
+            <button
+              key={key}
+              type="button"
+              role="radio"
+              aria-checked={palette === key}
+              className="palette"
+              onClick={() => {
+                setPalette(key)
+                setPaletteState(key)
+              }}
+            >
+              <span className="palette__swatch" aria-hidden>
+                {PALETTES[key].swatch.map((c) => (
+                  <i key={c} style={{ background: c }} />
+                ))}
+              </span>
+              <span className="palette__name">{PALETTES[key].name}</span>
             </button>
           ))}
         </div>
