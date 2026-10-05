@@ -52,7 +52,9 @@ function urlBase64ToUint8Array(base64: string) {
 export async function registerSW() {
   if (!('serviceWorker' in navigator)) return null
   try {
-    return await navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })
+    // Ở dev, tên chunk JS không đổi khi sửa code nên SW không được cache (?dev=1 tắt cache, vẫn giữ push)
+    const url = process.env.NODE_ENV === 'production' ? '/sw.js' : '/sw.js?dev=1'
+    return await navigator.serviceWorker.register(url, { scope: '/', updateViaCache: 'none' })
   } catch (e) {
     console.warn('SW register failed', e)
     return null

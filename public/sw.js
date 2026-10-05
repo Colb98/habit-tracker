@@ -1,10 +1,16 @@
 /* Service worker: offline shell + web push */
-const VERSION = 'v1'
+const VERSION = 'v2'
+// Đăng ký bằng /sw.js?dev=1 khi chạy next dev: không cache gì, chỉ xử lý push
+const DEV = new URL(self.location.href).searchParams.has('dev')
 const SHELL = `shell-${VERSION}`
 const STATIC = `static-${VERSION}`
 const PRECACHE = ['/', '/habit', '/edit', '/hall', '/settings']
 
 self.addEventListener('install', (event) => {
+  if (DEV) {
+    self.skipWaiting()
+    return
+  }
   event.waitUntil(
     caches
       .open(SHELL)
@@ -17,12 +23,13 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== SHELL && k !== STATIC).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => DEV || (k !== SHELL && k !== STATIC)).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   )
 })
 
 self.addEventListener('fetch', (event) => {
+  if (DEV) return
   const req = event.request
   if (req.method !== 'GET') return
   const url = new URL(req.url)
